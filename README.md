@@ -1,6 +1,7 @@
 # KOReader-page-number-calculator
 Calculate the number of characters to enter into Koreader to match the number of printed pages.
 
+
  I also like to have the actual page numbers as a reference, in addition to the remaining time, etc. That’s why I created a small HTML calculator to help set the number of characters per page correctly in Koreader. If you find it useful, I’m sharing it with you. It’s a very simple tool (it’s not even a real app, just a simple calculator). You can use it on a computer or smartphone (when you click open a browser), and it works entirely offline. Here’s how to use it:
 
 -Set Koreader to 1,500 characters per page and check “Use fixed page numbers”
