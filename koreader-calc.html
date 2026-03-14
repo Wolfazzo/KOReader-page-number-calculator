@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Calcola i caratteri per pagina da impostare in KOReader per ottenere pagine stabili corrispondenti al libro cartaceo." />
+  <title>KOReader Page Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #fff7f3;
+      --card: #ffffff;
+      --border: #f0ddd8;
+      --border-focus: #e05a2b;
+      --primary: #c93e0e;
+      --primary-light: #e05a2b;
+      --accent: #d97706;
+      --accent-2: #b45309;
+      --text: #1e0f06;
+      --text-muted: #5a3a28;
+      --text-dim: #9a7060;
+      --warning: #b45309;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --shadow: 0 8px 40px rgba(201, 62, 14, 0.11), 0 2px 8px rgba(0, 0, 0, 0.06);
+      --shadow-sm: 0 2px 8px rgba(201, 62, 14, 0.08);
+      --radius: 18px;
+      --radius-sm: 11px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      background-image:
+        radial-gradient(ellipse at 10% 20%, rgba(220, 80, 30, 0.10) 0%, transparent 55%),
+        radial-gradient(ellipse at 90% 80%, rgba(217, 119, 6, 0.09) 0%, transparent 55%),
+        radial-gradient(ellipse at 60% 10%, rgba(185, 50, 10, 0.06) 0%, transparent 50%);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 540px;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+      position: relative;
+    }
+
+    .lang-switcher {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-bottom: -10px;
+    }
+
+    .lang-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lang-btn:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .lang-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      box-shadow: 0 4px 10px rgba(201, 62, 14, 0.2);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 2.2rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #c93e0e, #d97706);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.07), rgba(201, 62, 14, 0.05));
+      border: 1px solid rgba(201, 62, 14, 0.18);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      color: var(--primary);
+    }
+
+    .info-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 7px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 50%;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .badge.refine {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+
+    .hint {
+      font-size: 0.73rem;
+      font-weight: 400;
+      color: var(--text-dim);
+      width: 100%;
+      margin-left: 30px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input.field-input {
+      width: 100%;
+      background: #fff8f5;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 56px 12px 14px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input.field-input::placeholder {
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    input.field-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(201, 62, 14, 0.12);
+      background: #fff;
+    }
+
+    .suffix {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .error {
+      background: rgba(220, 38, 38, 0.08);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font-size: 0.84rem;
+      color: var(--danger);
+      display: none;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .error.show {
+      display: flex;
+    }
+
+    button.calc-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 28px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(201, 62, 14, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+      letter-spacing: 0.01em;
+    }
+
+    button.calc-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 7px 24px rgba(201, 62, 14, 0.42);
+    }
+
+    button.calc-btn:active {
+      transform: translateY(0);
+    }
+
+    .result-card {
+      border-radius: var(--radius-sm);
+      padding: 22px;
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+      animation: slideUp 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .result-card.show {
+      display: flex;
+    }
+
+    .result-card.ok {
+      background: linear-gradient(135deg, rgba(201, 62, 14, 0.06), rgba(217, 119, 6, 0.04));
+      border: 1.5px solid rgba(201, 62, 14, 0.2);
+    }
+
+    .result-card.warn {
+      background: rgba(217, 119, 6, 0.06);
+      border: 1.5px solid rgba(217, 119, 6, 0.22);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-warn-msg {
+      background: rgba(217, 119, 6, 0.1);
+      border: 1px solid rgba(217, 119, 6, 0.28);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 0.82rem;
+      color: var(--warning);
+      display: flex;
+      gap: 7px;
+    }
+
+    .result-main {
+      text-align: center;
+    }
+
+    .result-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .result-value {
+      font-size: 3.6rem;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      background: linear-gradient(135deg, #c93e0e, #d97706);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    button.copy-btn {
+      align-self: center;
+      padding: 8px 20px;
+      background: #fff0ea;
+      border: 1.5px solid rgba(201, 62, 14, 0.22);
+      border-radius: 8px;
+      color: var(--primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    button.copy-btn:hover {
+      background: #ffe4d6;
+      border-color: rgba(201, 62, 14, 0.4);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      background: #fff8f5;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 13px;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .stat-val {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .delta {
+      font-size: 0.75rem;
+      color: var(--warning);
+      font-weight: 500;
+      margin-left: 5px;
+    }
+
+    /* Refine Box UI */
+    .refine-section {
+      background: rgba(217, 119, 6, 0.06);
+      border: 1px solid rgba(217, 119, 6, 0.22);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .refine-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .refine-text {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .refine-inputs {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .refine-field {
+      flex: 1;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .refine-label-s {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .refine-input {
+      width: 100%;
+      background: white;
+      border: 1.5px solid rgba(217, 119, 6, 0.25);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .refine-btn {
+      padding: 10px 18px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+    }
+
+    .how-to {
+      background: linear-gradient(135deg, rgba(201, 62, 14, 0.05), rgba(217, 119, 6, 0.05));
+      border: 1px solid rgba(201, 62, 14, 0.15);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+
+    .how-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 9px;
+    }
+
+    .how-list {
+      list-style: none;
+      counter-reset: s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .how-list li {
+      counter-increment: s;
+      display: flex;
+      gap: 9px;
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      align-items: flex-start;
+    }
+
+    .how-list li::before {
+      content: counter(s);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      background: rgba(201, 62, 14, 0.12);
+      border-radius: 50%;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--primary);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .how-list em {
+      color: var(--text);
+      font-style: normal;
+    }
+
+    .how-list strong {
+      color: var(--primary);
+    }
+
+    .footer {
+      font-size: 0.73rem;
+      color: var(--text-dim);
+      text-align: center;
+      padding-top: 4px;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 24px 18px;
+        gap: 20px;
+      }
+
+      .header h1 {
+        font-size: 1.25rem;
+      }
+
+      .result-value {
+        font-size: 2.8rem;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .refine-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .card {
+        padding: 20px 14px;
+      }
+
+      .header {
+        gap: 10px;
+      }
+
+      .logo {
+        font-size: 1.8rem;
+      }
+
+      .hint {
+        margin-left: 0;
+        margin-top: 2px;
+      }
+
+      .field-label {
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+      <button class="lang-btn" onclick="switchLanguage('it')" id="btn-it">IT</button>
+      <button class="lang-btn" onclick="switchLanguage('en')" id="btn-en">EN</button>
+      <button class="lang-btn" onclick="switchLanguage('es')" id="btn-es">ES</button>
+      <button class="lang-btn" onclick="switchLanguage('pt')" id="btn-pt">PT</button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">📖</div>
+      <div>
+        <h1 data-i18n="title">KOReader Page Calculator</h1>
+        <p class="subtitle" data-i18n="subtitle">Calibra le pagine stabili al libro cartaceo</p>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="info-box">
+      <div class="info-title"><span data-i18n="info-title-icon">ℹ️</span> <span data-i18n="info-title-text">Perché c'è discrepanza?</span></div>
+      <span data-i18n="info-text-1">KOReader stima i caratteri totali in modo diverso per ogni impostazione.</span>
+      <span data-i18n="info-text-2">Per questo motivo, un solo calcolo potrebbe non bastare.</span>
+      <strong data-i18n="info-strong">Usa il sistema a due passi qui sotto per la perfezione.</strong>
+    </div>
+
+    <!-- Form -->
+    <div class="form">
+      <div class="field">
+        <label class="field-label" for="f-kpages">
+          <span class="badge">➊</span>
+          <span data-i18n="label-kpages">Pagine mostrate da KOReader</span>
+          <span class="hint" data-i18n="hint-kpages">Imposta 1500 c/p e scrivi quante pagine vedi</span>
+        </label>
+        <div class="input-wrap">
+          <input class="field-input" id="f-kpages" type="text" inputmode="numeric" placeholder="es. 760" data-i18n-placeholder="placeholder-kpages" />
+          <span class="suffix" data-i18n="suffix-pages">pag</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="f-rpages">
+          <span class="badge">➋</span>
+          <span data-i18n="label-rpages">Pagine reali del libro cartaceo</span>
+          <span class="hint" data-i18n="hint-rpages">Le pagine della copia fisica</span>
+        </label>
+        <div class="input-wrap">
+          <input class="field-input" id="f-rpages" type="text" inputmode="numeric" placeholder="es. 584" data-i18n-placeholder="placeholder-rpages" />
+          <span class="suffix" data-i18n="suffix-pages">pag</span>
+        </div>
+      </div>
+
+      <div class="error" id="error-box">⚠️ <span id="error-text"></span></div>
+
+      <button class="calc-btn" id="btn-calc" onclick="calculate()">
+        <span>⚡</span> <span data-i18n="btn-calculate">Calcola primo valore</span>
+      </button>
+    </div>
+
+    <!-- Result Area -->
+    <div class="result-card" id="result-card">
+      <div class="result-warn-msg" id="range-warn" style="display:none"></div>
+
+      <div class="result-main">
+        <div class="result-label" data-i18n="result-label">Imposta in KOReader e verifica</div>
+        <div class="result-value" id="res-value">—</div>
+      </div>
+
+      <button class="copy-btn" id="btn-copy" onclick="copyResult()" data-i18n="btn-copy">📋 Copia valore</button>
+
+      <!-- Refinement (Steps to fix the discrepancy) -->
+      <div class="refine-section">
+        <div class="refine-title"><span data-i18n="refine-icon">🔁</span> <span data-i18n="refine-title">Passo 2: Affinamento finale</span></div>
+        <p class="refine-text" id="refine-text-el">
+          <span data-i18n="refine-text-1">Se dopo aver impostato</span> <strong id="refine-val-set">—</strong> <span data-i18n="refine-text-2">KOReader mostra un numero diverso da</span> <strong id="refine-target">—</strong>, <span data-i18n="refine-text-3">inseriscilo qui:</span>
+        </p>
+        <div class="refine-inputs">
+          <div class="refine-field">
+            <span class="refine-label-s" data-i18n="refine-actual-label">Pagine mostrate ora da KOReader</span>
+            <input class="refine-input" id="refine-actual" type="text" inputmode="numeric" placeholder="es. 603" data-i18n-placeholder="placeholder-refine" />
+          </div>
+          <button class="refine-btn" onclick="refine()" data-i18n="btn-refine">Ricalcola →</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label" data-i18n="stat-target-label">Pagine target</div>
+          <div class="stat-val" id="stat-target">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label" data-i18n="stat-estimated-label">Pagine stimate KOReader</div>
+          <div class="stat-val" id="stat-effective">—</div>
+        </div>
+      </div>
+
+      <!-- How-to -->
+      <div class="how-to">
+        <div class="how-title" data-i18n="how-title">Istruzioni rapida</div>
+        <ol class="how-list">
+          <li><span data-i18n="how-step-1">Imposta in KOReader il valore:</span> <strong id="how-value">—</strong></li>
+          <li><span data-i18n="how-step-2-a">Se KOReader mostra</span> <strong>esattamente</strong> <span id="how-target">—</span> <span data-i18n="how-step-2-b">pagine, hai finito! ✓</span></li>
+          <li><span data-i18n="how-step-3">Se ne mostra di più o di meno, usa la sezione "Affinamento" sopra.</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="footer" data-i18n="footer">
+      Formula proporzionale: valore_reale = valore_attuale * (pag_vedute / pag_reali)
+    </div>
+  </div>
+
+  <script>
+    const MIN = 500, MAX = 3000;
+    const INITIAL_REF = 1500;
+    let currentSetting = 1500;
+    let lastResult = null;
+    let currentLang = 'en';
+
+    const i18n = {
+      it: {
+        title: "KOReader Page Calculator",
+        subtitle: "Calibra le pagine stabili al libro cartaceo",
+        "info-title-text": "Perché c'è discrepanza?",
+        "info-text-1": "KOReader stima i caratteri totali in modo diverso per ogni impostazione.",
+        "info-text-2": "Per questo motivo, un solo calcolo potrebbe non bastare.",
+        "info-strong": "Usa il sistema a due passi qui sotto per la perfezione.",
+        "label-kpages": "Pagine mostrate da KOReader",
+        "hint-kpages": "Imposta 1500 c/p e scrivi quante pagine vedi",
+        "placeholder-kpages": "es. 760",
+        "label-rpages": "Pagine reali del libro cartaceo",
+        "hint-rpages": "Le pagine della copia fisica",
+        "placeholder-rpages": "es. 584",
+        "suffix-pages": "pag",
+        "btn-calculate": "Calcola primo valore",
+        "result-label": "Imposta in KOReader e verifica",
+        "btn-copy": "📋 Copia valore",
+        "btn-copied": "✅ Copiato!",
+        "refine-title": "Passo 2: Affinamento finale",
+        "refine-text-1": "Se dopo aver impostato",
+        "refine-text-2": "KOReader mostra un numero diverso da",
+        "refine-text-3": "inseriscolo qui:",
+        "refine-actual-label": "Pagine mostrate ora da KOReader",
+        "placeholder-refine": "es. 603",
+        "btn-refine": "Ricalcola →",
+        "stat-target-label": "Pagine target",
+        "stat-estimated-label": "Pagine stimate KOReader",
+        "how-title": "Istruzioni rapida",
+        "how-step-1": "Imposta in KOReader il valore:",
+        "how-step-2-a": "Se KOReader mostra",
+        "how-step-2-b": "pagine, hai finito! ✓",
+        "how-step-3": "Se ne mostra di più o di meno, usa la sezione \"Affinamento\" sopra.",
+        footer: "Formula proporzionale: valore_reale = valore_attuale * (pag_vedute / pag_reali)",
+        "err-kpages": "Inserisci le pagine mostrate da KOReader.",
+        "err-rpages": "Inserisci il numero di pagine reali del cartaceo.",
+        "err-refine": "Inserisci il numero di pagine che vedi ora in KOReader.",
+        "warn-min": "⚠️ Valore calcolato ({v}) sotto il minimo KOReader. Impostato a {m}.",
+        "warn-max": "⚠️ Valore calcolato ({v}) sopra il massimo KOReader. Impostato a {m}."
+      },
+      en: {
+        title: "KOReader Page Calculator",
+        subtitle: "Calibrate stable pages to matches physical book",
+        "info-title-text": "Why is there a discrepancy?",
+        "info-text-1": "KOReader estimates total characters differently for each setting.",
+        "info-text-2": "For this reason, a single calculation might not be enough.",
+        "info-strong": "Use the two-step system below for perfection.",
+        "label-kpages": "Pages shown by KOReader",
+        "hint-kpages": "Set 1500 c/p and write how many pages you see",
+        "placeholder-kpages": "e.g. 760",
+        "label-rpages": "Real pages of the physical book",
+        "hint-rpages": "The pages of the physical copy",
+        "placeholder-rpages": "e.g. 584",
+        "suffix-pages": "pp",
+        "btn-calculate": "Calculate first value",
+        "result-label": "Set in KOReader and verify",
+        "btn-copy": "📋 Copy value",
+        "btn-copied": "✅ Copied!",
+        "refine-title": "Step 2: Final refinement",
+        "refine-text-1": "If after setting",
+        "refine-text-2": "KOReader shows a number different from",
+        "refine-text-3": "enter it here:",
+        "refine-actual-label": "Pages shown now by KOReader",
+        "placeholder-refine": "e.g. 603",
+        "btn-refine": "Recalculate →",
+        "stat-target-label": "Target pages",
+        "stat-estimated-label": "Estimated KOReader pages",
+        "how-title": "Quick instructions",
+        "how-step-1": "Set the value in KOReader:",
+        "how-step-2-a": "If KOReader shows",
+        "how-step-2-b": "pages exactly, you're done! ✓",
+        "how-step-3": "If it shows more or less, use the \"Refinement\" section above.",
+        footer: "Proportional formula: real_value = current_value * (seen_pages / real_pages)",
+        "err-kpages": "Please enter the pages shown by KOReader.",
+        "err-rpages": "Please enter the number of real pages in the book.",
+        "err-refine": "Please enter the number of pages you see now in KOReader.",
+        "warn-min": "⚠️ Calculated value ({v}) below KOReader minimum. Set to {m}.",
+        "warn-max": "⚠️ Calculated value ({v}) above KOReader maximum. Set to {m}."
+      },
+      es: {
+        title: "Calculadora de Páginas KOReader",
+        subtitle: "Calibra páginas estables para que coincidan con el libro físico",
+        "info-title-text": "¿Por qué hay una discrepancia?",
+        "info-text-1": "KOReader estima los caracteres totales de forma diferente para cada ajuste.",
+        "info-text-2": "Por esta razón, un solo cálculo podría no ser suficiente.",
+        "info-strong": "Utilice el sistema de dos pasos a continuación para la perfección.",
+        "label-kpages": "Páginas mostradas por KOReader",
+        "hint-kpages": "Ajuste 1500 c/p y escriba cuántas páginas ve",
+        "placeholder-kpages": "ej. 760",
+        "label-rpages": "Páginas reales del libro físico",
+        "hint-rpages": "Las páginas de la copia física",
+        "placeholder-rpages": "ej. 584",
+        "suffix-pages": "pág",
+        "btn-calculate": "Calcular primer valor",
+        "result-label": "Ajuste en KOReader y verifique",
+        "btn-copy": "📋 Copiar valor",
+        "btn-copied": "✅ ¡Copiado!",
+        "refine-title": "Paso 2: Refinamiento final",
+        "refine-text-1": "Si después de ajustar",
+        "refine-text-2": "KOReader muestra un número diferente de",
+        "refine-text-3": "itrodúzcalo aquí:",
+        "refine-actual-label": "Páginas que muestra ahora KOReader",
+        "placeholder-refine": "ej. 603",
+        "btn-refine": "Recalcular →",
+        "stat-target-label": "Páginas objetivo",
+        "stat-estimated-label": "Páginas estimadas KOReader",
+        "how-title": "Instrucciones rápidas",
+        "how-step-1": "Ajuste en KOReader el valor:",
+        "how-step-2-a": "Si KOReader muestra",
+        "how-step-2-b": "páginas exactamente, ¡ya está! ✓",
+        "how-step-3": "Si muestra más o menos, use la sección \"Refinamiento\" de arriba.",
+        footer: "Fórmula proporcional: valor_real = valor_actual * (pág_vistas / pág_reales)",
+        "err-kpages": "Por favor, introduzca las páginas mostradas por KOReader.",
+        "err-rpages": "Por favor, introduzca el número de páginas reales del libro.",
+        "err-refine": "Por favor, introduzca el número de páginas que ve ahora en KOReader.",
+        "warn-min": "⚠️ Valor calculado ({v}) por debajo del mínimo de KOReader. Ajustado a {m}.",
+        "warn-max": "⚠️ Valor calculado ({v}) por encima del máximo de KOReader. Ajustado a {m}."
+      },
+      pt: {
+        title: "Calculadora de Páginas KOReader",
+        subtitle: "Calibre páginas estáveis para corresponder ao livro físico",
+        "info-title-text": "Por que há uma discrepância?",
+        "info-text-1": "O KOReader estima o total de caracteres de forma diferente para cada configuração.",
+        "info-text-2": "Por esse motivo, apenas um cálculo pode não ser suficiente.",
+        "info-strong": "Use o sistema de dois passos abaixo para obter a perfeição.",
+        "label-kpages": "Páginas mostradas pelo KOReader",
+        "hint-kpages": "Defina 1500 c/p e escreva quantas páginas você vê",
+        "placeholder-kpages": "ex. 760",
+        "label-rpages": "Páginas reais do livro físico",
+        "hint-rpages": "As páginas da cópia física",
+        "placeholder-rpages": "ex. 584",
+        "suffix-pages": "pág",
+        "btn-calculate": "Calcular primeiro valor",
+        "result-label": "Defina no KOReader e verifique",
+        "btn-copy": "📋 Copiar valor",
+        "btn-copied": "✅ Copiado!",
+        "refine-title": "Passo 2: Refinamento final",
+        "refine-text-1": "Se após a configuração",
+        "refine-text-2": "o KOReader mostrar um número diferente de",
+        "refine-text-3": "insira-o aqui:",
+        "refine-actual-label": "Páginas agora mostradas pelo KOReader",
+        "placeholder-refine": "ex. 603",
+        "btn-refine": "Recalcular →",
+        "stat-target-label": "Páginas alvo",
+        "stat-estimated-label": "Páginas estimadas do KOReader",
+        "how-title": "Instruções rápidas",
+        "how-step-1": "Defina no KOReader o valor:",
+        "how-step-2-a": "Se o KOReader mostrar",
+        "how-step-2-b": "páginas exatamente, você terminou! ✓",
+        "how-step-3": "Se ele mostrar mais ou menos, use a seção \"Refinamento\" acima.",
+        footer: "Fórmula proporcional: valor_real = valor_atual * (pág_vistas / pág_reais)",
+        "err-kpages": "Por favor, insira as páginas mostradas pelo KOReader.",
+        "err-rpages": "Por favor, insira o número de páginas reais do livro.",
+        "err-refine": "Por favor, insira o número de páginas que você vê agora no KOReader.",
+        "warn-min": "⚠️ Valor calculado ({v}) abaixo do mínimo do KOReader. Definido como {m}.",
+        "warn-max": "⚠️ Valor calculado ({v}) acima do máximo do KOReader. Definido como {m}."
+      }
+    };
+
+    function switchLanguage(lang) {
+      currentLang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key]) {
+          el.textContent = i18n[lang][key];
+        }
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (i18n[lang][key]) {
+          el.placeholder = i18n[lang][key];
+        }
+      });
+
+      // Update active button
+      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`btn-${lang}`).classList.add('active');
+
+      // Update last result if present to refresh dynamic labels
+      if (lastResult) {
+        document.getElementById('refine-val-set').textContent = fmt(currentSetting);
+        document.getElementById('refine-target').textContent = fmt(lastResult.targetPages);
+      }
+    }
+
+    function parseIt(s) {
+      return parseFloat(String(s).replace(/\./g, '').replace(',', '.'));
+    }
+    function fmt(n) {
+      const locale = currentLang === 'it' ? 'it-IT' : (currentLang === 'pt' ? 'pt-PT' : (currentLang === 'es' ? 'es-ES' : 'en-US'));
+      return Math.round(n).toLocaleString(locale);
+    }
+    function clamp(v, mn, mx) { return Math.min(Math.max(v, mn), mx); }
+
+    function showError(msgKey) {
+      const box = document.getElementById('error-box');
+      document.getElementById('error-text').textContent = i18n[currentLang][msgKey] || msgKey;
+      box.classList.add('show');
+    }
+    function clearError() {
+      document.getElementById('error-box').classList.remove('show');
+    }
+
+    function applyResult(charsSetting, actualKOReaderPages, targetPages) {
+      let calculatedChars = charsSetting * actualKOReaderPages / targetPages;
+      const clamped = clamp(Math.round(calculatedChars), MIN, MAX);
+      const isOutOfRange = calculatedChars < MIN || calculatedChars > MAX;
+
+      currentSetting = clamped;
+      lastResult = { clamped, targetPages };
+
+      const warnEl = document.getElementById('range-warn');
+      if (isOutOfRange) {
+        warnEl.style.display = 'flex';
+        let msg = calculatedChars < MIN
+          ? i18n[currentLang]['warn-min']
+          : i18n[currentLang]['warn-max'];
+        warnEl.textContent = msg.replace('{v}', fmt(calculatedChars)).replace('{m}', fmt(clamped));
+      } else {
+        warnEl.style.display = 'none';
+      }
+
+      document.getElementById('res-value').textContent = fmt(clamped);
+      document.getElementById('how-value').textContent = fmt(clamped);
+      document.getElementById('refine-val-set').textContent = fmt(clamped);
+      document.getElementById('refine-target').textContent = fmt(targetPages);
+      document.getElementById('how-target').textContent = fmt(targetPages);
+      document.getElementById('stat-target').textContent = fmt(targetPages);
+
+      const estimatedPages = Math.round(actualKOReaderPages * charsSetting / clamped);
+      const diff = estimatedPages - targetPages;
+      const effEl = document.getElementById('stat-effective');
+      effEl.innerHTML = fmt(estimatedPages) + (diff !== 0 ? `<span class="delta">(${diff > 0 ? '+' : ''}${diff})</span>` : '');
+
+      document.getElementById('result-card').classList.add('show');
+      const btnCopy = document.getElementById('btn-copy');
+      btnCopy.textContent = i18n[currentLang]['btn-copy'];
+      document.getElementById('refine-actual').value = '';
+    }
+
+    function calculate() {
+      clearError();
+      const kp = parseIt(document.getElementById('f-kpages').value);
+      const rp = parseIt(document.getElementById('f-rpages').value);
+
+      if (isNaN(kp) || kp <= 0) return showError('err-kpages');
+      if (isNaN(rp) || rp <= 0) return showError('err-rpages');
+
+      applyResult(1500, kp, rp);
+    }
+
+    function refine() {
+      const actualStr = document.getElementById('refine-actual').value;
+      const actual = parseIt(actualStr);
+      if (isNaN(actual) || actual <= 0) {
+        alert(i18n[currentLang]['err-refine']);
+        return;
+      }
+      applyResult(currentSetting, actual, lastResult.targetPages);
+    }
+
+    function copyResult() {
+      if (!lastResult) return;
+      navigator.clipboard.writeText(String(lastResult.clamped)).then(() => {
+        const btn = document.getElementById('btn-copy');
+        btn.textContent = i18n[currentLang]['btn-copied'];
+        setTimeout(() => btn.textContent = i18n[currentLang]['btn-copy'], 2000);
+      });
+    }
+
+    // Default to EN
+    window.onload = () => switchLanguage('en');
+
+    document.querySelectorAll('.field-input').forEach(el => {
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+    });
+    document.getElementById('refine-actual').addEventListener('keydown', e => {
+      if (e.key === 'Enter') refine();
+    });
+  </script>
+</body>
+
+</html>
